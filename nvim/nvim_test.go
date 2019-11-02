@@ -12,13 +12,13 @@ import (
 	"time"
 )
 
-func newChildProcess(t *testing.T) (*Nvim, func()) {
+func newChildProcess(tb testing.TB) (*Nvim, func()) {
 	v, err := NewChildProcess(
 		ChildProcessArgs("-u", "NONE", "-n", "--embed", "--headless"),
 		ChildProcessEnv([]string{}),
-		ChildProcessLogf(t.Logf))
+		ChildProcessLogf(tb.Logf))
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 
 	done := make(chan error, 1)
@@ -28,7 +28,7 @@ func newChildProcess(t *testing.T) (*Nvim, func()) {
 
 	return v, func() {
 		if err := v.Close(); err != nil {
-			t.Fatal(err)
+			tb.Fatal(err)
 		}
 	}
 }
