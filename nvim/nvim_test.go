@@ -13,6 +13,8 @@ import (
 )
 
 func newChildProcess(tb testing.TB) (*Nvim, func()) {
+	tb.Helper()
+
 	v, err := NewChildProcess(
 		ChildProcessArgs("-u", "NONE", "-n", "--embed", "--headless"),
 		ChildProcessEnv([]string{}),
