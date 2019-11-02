@@ -98,14 +98,14 @@ func (r *bufferReader) Read(p []byte) (int, error) {
 		if len(p) == 0 {
 			return n, nil
 		}
-		line0 := r.lines[0]
-		if len(line0) == 0 {
+		if len(r.lines[0]) == 0 {
 			p[0] = '\n'
 			p = p[1:]
 			n++
 			r.lines = r.lines[1:]
 			continue
 		}
+		line0 := r.lines[0]
 		nn := copy(p, line0)
 		n += nn
 		p = p[nn:]
