@@ -170,6 +170,52 @@ func BufferMark(buffer Buffer, name string) [2]int {
 	name(nvim_buf_get_mark)
 }
 
+// BufferExtmarkByID returns position for a given extmark id.
+func BufferExtmarkByID(buffer Buffer, nsID int, id int) []int {
+	name(nvim_buf_get_extmark_by_id)
+}
+
+// BufferExtmarks list extmarks in a range (inclusive).
+//
+// range ends can be specified as (row, col) tuples, as well as extmark
+// ids in the same namespace. In addition, 0 and -1 works as shorthands
+// for (0,0) and (-1,-1) respectively, so that all marks in the buffer can be
+// queried as:
+//
+//   allMarks = BufferExtmarks(0, my_ns, 0, -1, map[string]interface{})
+//
+// If end is a lower position than start, then the range will be traversed
+// backwards. This is mostly useful with limited amount, to be able to get the
+// first marks prior to a given position.
+//
+// opts is additional options. Supports the keys:
+//   amount: Maximum number of marks to return.
+func BufferExtmarks(buffer Buffer, nsID int, start interface{}, end interface{}, opt map[string]interface{}) []interface{} {
+	name(nvim_buf_get_extmarks)
+}
+
+// SetBufferExtmark creates or updates an extmark at a position.
+//
+// If an invalid namespace is given, an error will be raised.
+//
+// To create a new extmark, pass in id=0. The new extmark id will be
+// returned. To move an existing mark, pass in its id.
+//
+// It is also allowed to create a new mark by passing in a previously unused
+// id, but the caller must then keep track of existing and unused ids itself.
+// This is mainly useful over RPC, to avoid needing to wait for the return
+// value.
+//
+// Currently opts arg not used.
+func SetBufferExtmark(buffer Buffer, nsID int, id int, line int, col int, opts map[string]interface{}) int {
+	name(nvim_buf_set_extmark)
+}
+
+// DeleteBufferExtmark removes an extmark.
+func DeleteBufferExtmark(buffer Buffer, nsID int, id int) bool {
+	name(nvim_buf_del_extmark)
+}
+
 // AddBufferHighlight adds a highlight to buffer and returns the source id of
 // the highlight.
 //
@@ -240,6 +286,20 @@ func ClearBufferHighlight(buffer Buffer, srcID int, startLine int, endLine int) 
 // The returns the nsID that was used.
 func SetBufferVirtualText(buffer Buffer, nsID int, line int, chunks []VirtualTextChunk, opts map[string]interface{}) int {
 	name(nvim_buf_set_virtual_text)
+}
+
+// BufferVirtualText gets the virtual text (annotation) for a buffer line.
+//
+// The virtual text is returned as list of lists, whereas the inner lists have
+// either one or two elements. The first element is the actual text, the
+// optional second element is the highlight group.
+//
+// The format is exactly the same as given to SetBufferVirtualText.
+//
+// If there is no virtual text associated with the given line, an empty list
+// is returned.
+func BufferVirtualText(buffer Buffer, lnum int) []VirtualTextChunk {
+	name(nvim_buf_get_virtual_text)
 }
 
 // TabpageWindows returns the windows in a tabpage.
@@ -316,6 +376,14 @@ func SetUIOption(name string, value interface{}) {
 // On invalid grid handle, fails with error.
 func TryResizeUIGrid(grid, width, height int) {
 	name(nvim_ui_try_resize_grid)
+}
+
+// SetPumHeight tells Nvim the number of elements displaying in the popumenu, to decide
+// <PageUp> and <PageDown> movement.
+//
+// height is popupmenu height, must be greater than zero.
+func SetPumHeight(height int) {
+	name(nvim_ui_pum_set_height)
 }
 
 // Command executes a single ex command.
@@ -570,6 +638,45 @@ func Namespaces() map[string]int {
 	name(nvim_get_namespaces)
 }
 
+// Paste pastes at cursor, in any mode.
+//
+// Invokes the `vim.paste` handler, which handles each mode appropriately.
+// Sets redo/undo. Faster than |nvim_input()|. Lines break at LF ("\n").
+//
+// Errors ('nomodifiable', `vim.paste()` failure, …) are reflected in `err`
+// but do not affect the return value (which is strictly decided by
+// `vim.paste()`).  On error, subsequent calls are ignored ("drained") until
+// the next paste is initiated (phase 1 or -1).
+//
+// data: multiline input. May be binary (containing NUL bytes).
+// crlf: also break lines at CR and CRLF.
+// phase: -1 is paste in a single call (i.e. without streaming).
+// To "stream" a paste, call `nvim_paste` sequentially with these `phase` values:
+//   1: starts the paste (exactly once)
+//   2: continues the paste (zero or more times)
+//   3: ends the paste (exactly once)
+func Paste(data string, crlf bool, phase int) bool {
+	name(nvim_paste)
+}
+
+// Put puts text at cursor, in any mode.
+//
+// Compare |:put| and |p| which are always linewise.
+//
+// lines is |readfile()|-style list of lines. |channel-lines|
+//
+// type is edit behavior: any |getregtype()| result, or:
+//   "b" |blockwise-visual| mode (may include width, e.g. "b3")
+//   "c" |characterwise| mode
+//   "l" |linewise| mode
+//   ""  guess by contents, see |setreg()|
+// after is insert after cursor (like |p|), or before (like |P|).
+//
+// follow is place cursor at end of inserted text.
+func Put(lines []string, typ string, after bool, follow bool) {
+	name(nvim_put)
+}
+
 // Subscribe subscribes to a Nvim event.
 func Subscribe(event string) {
 	name(nvim_subscribe)
@@ -586,6 +693,19 @@ func ColorByName(name string) int {
 
 func ColorMap() map[string]int {
 	name(nvim_get_color_map)
+}
+
+// Context gets a map of the current editor state.
+//
+// opts is Optional parameters.
+// types: List of |context-types| ("regs", "jumps", "bufs", "gvars" or etc) to gather, or empty for "all".
+func Context(opts map[string][]string) map[string]interface{} {
+	name(nvim_get_context)
+}
+
+// LoadContext sets the current editor state from the given |context| map.
+func LoadContext(dict map[string]interface{}) interface{} {
+	name(nvim_load_context)
 }
 
 // Mode gets Nvim's current mode.
