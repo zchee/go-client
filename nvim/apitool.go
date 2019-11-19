@@ -294,6 +294,7 @@ var nvimTypes = map[string]string{
 	"Process":       "Object",
 
 	"map[string]interface{}":   "Dictionary",
+	"map[string][]string":      "Dictionary",
 	"map[string]int":           "Dictionary",
 	"map[string]bool":          "Dictionary",
 	"map[string]*Command":      "Dictionary",
@@ -304,6 +305,7 @@ var nvimTypes = map[string]string{
 	"*WindowConfig":            "Dictionary",
 
 	"[2]int":    "ArrayOf(Integer, 2)",
+	"[]int":     "ArrayOf(Integer)",
 	"[]Buffer":  "ArrayOf(Buffer)",
 	"[]Tabpage": "ArrayOf(Tabpage)",
 	"[]Window":  "ArrayOf(Window)",
